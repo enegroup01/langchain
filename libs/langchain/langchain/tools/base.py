@@ -454,6 +454,9 @@ class Tool(BaseTool):
     """The asynchronous version of the function."""
 
     # --- Runnable ---
+    def can_handle(self, task: str) -> bool:
+        # For this example, we'll assume the tool can handle tasks that match its name
+        return task == self.name
 
     async def ainvoke(
         self,
