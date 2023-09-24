@@ -197,18 +197,25 @@ class OpenAIMultiFunctionsAgent(BaseMultiActionAgent):
         Returns:
             Action specifying what tool to use.
         """
-        agent_scratchpad = format_to_openai_functions(intermediate_steps)
-        selected_inputs = {
-            k: kwargs[k] for k in self.prompt.input_variables if k != "agent_scratchpad"
-        }
-        full_inputs = dict(**selected_inputs, agent_scratchpad=agent_scratchpad)
-        prompt = self.prompt.format_prompt(**full_inputs)
-        messages = prompt.to_messages()
-        predicted_message = self.llm.predict_messages(
-            messages, functions=self.functions, callbacks=callbacks
-        )
-        agent_decision = _parse_ai_message(predicted_message)
-        return agent_decision
+
+        if self.tools is not None and any(tool.can_handle(kwargs['input']) for tool in self.tools):
+            # If tools can handle the request, proceed to answer the question
+            for tool in self.tools:
+                if tool.can_handle(kwargs['input']):
+                    return tool.run(kwargs['input'])
+        else:
+            agent_scratchpad = format_to_openai_functions(intermediate_steps)
+            selected_inputs = {
+                k: kwargs[k] for k in self.prompt.input_variables if k != "agent_scratchpad"
+            }
+            full_inputs = dict(**selected_inputs, agent_scratchpad=agent_scratchpad)
+            prompt = self.prompt.format_prompt(**full_inputs)
+            messages = prompt.to_messages()
+            predicted_message = self.llm.predict_messages(
+                messages, functions=self.functions, callbacks=callbacks
+            )
+            agent_decision = _parse_ai_message(predicted_message)
+            return agent_decision
 
     async def aplan(
         self,
@@ -226,18 +233,24 @@ class OpenAIMultiFunctionsAgent(BaseMultiActionAgent):
         Returns:
             Action specifying what tool to use.
         """
-        agent_scratchpad = format_to_openai_functions(intermediate_steps)
-        selected_inputs = {
-            k: kwargs[k] for k in self.prompt.input_variables if k != "agent_scratchpad"
-        }
-        full_inputs = dict(**selected_inputs, agent_scratchpad=agent_scratchpad)
-        prompt = self.prompt.format_prompt(**full_inputs)
-        messages = prompt.to_messages()
-        predicted_message = await self.llm.apredict_messages(
-            messages, functions=self.functions, callbacks=callbacks
-        )
-        agent_decision = _parse_ai_message(predicted_message)
-        return agent_decision
+        if self.tools is not None and any(tool.can_handle(kwargs['input']) for tool in self.tools):
+            # If tools can handle the request, proceed to answer the question
+            for tool in self.tools:
+                if tool.can_handle(kwargs['input']):
+                    return tool.run(kwargs['input'])
+        else:
+            agent_scratchpad = format_to_openai_functions(intermediate_steps)
+            selected_inputs = {
+                k: kwargs[k] for k in self.prompt.input_variables if k != "agent_scratchpad"
+            }
+            full_inputs = dict(**selected_inputs, agent_scratchpad=agent_scratchpad)
+            prompt = self.prompt.format_prompt(**full_inputs)
+            messages = prompt.to_messages()
+            predicted_message = await self.llm.apredict_messages(
+                messages, functions=self.functions, callbacks=callbacks
+            )
+            agent_decision = _parse_ai_message(predicted_message)
+            return agent_decision
 
     @classmethod
     def create_prompt(
