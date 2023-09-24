@@ -200,6 +200,7 @@ class OpenAIMultiFunctionsAgent(BaseMultiActionAgent):
 
         if self.tools is not None and any(tool.can_handle(kwargs['input']) for tool in self.tools):
             # If tools can handle the request, proceed to answer the question
+            print("*=====my langchain")
             for tool in self.tools:
                 if tool.can_handle(kwargs['input']):
                     return tool.run(kwargs['input'])
@@ -235,6 +236,7 @@ class OpenAIMultiFunctionsAgent(BaseMultiActionAgent):
         """
         if self.tools is not None and any(tool.can_handle(kwargs['input']) for tool in self.tools):
             # If tools can handle the request, proceed to answer the question
+            print("*=====my langchain")
             for tool in self.tools:
                 if tool.can_handle(kwargs['input']):
                     return tool.run(kwargs['input'])
